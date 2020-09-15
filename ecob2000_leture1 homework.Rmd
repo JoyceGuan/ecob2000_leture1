@@ -1,0 +1,163 @@
+---
+title: "ecob2000_leture1"
+author: "Joyce, Yameili, Tamires"
+date: "9/13/2020"
+---
+# Part1.CODES REPRODUCTION
+
+```{r}
+x <- 1:50
+x <- 1:50
+w <- 1 + sqrt(x)/2
+example1 <- data.frame(x=x, y= x + rnorm(x)*w)
+attach(example1)
+
+```
+
+
+Variables X &Y are created 
+
+
+```{r}
+fm <- lm(y ~ x)
+summary(fm)
+```
+
+
+```{r}
+lrf <- lowess(x, y)
+plot(x, y)
+lines(x, lrf$y)
+abline(0, 1, lty=3)
+abline(coef(fm))
+```
+
+#Data Explore: **PUMS** (Census Bureau's "Public Use Microdata Survey)
+
+```{r}
+load("/Users/new/Desktop/acs2017_ny/acs2017_ny_data.RData")
+#glimpse(acs2017_ny) try this later
+acs2017_ny[1:10,1:7]
+```
+
+
+```{r}
+attach(acs2017_ny)
+summary(acs2017_ny)
+```
+```{r}
+print(NN_obs <- length(AGE))
+```
+
+the total population in the data.
+
+##  Average Age of Men&Women
+```{r}
+summary(AGE[female == 1])
+```
+```{r}
+summary(AGE[!female])
+```
+
+note: female=1 (i.e. women) and those not female=1 (so logical not, denoted with the “!” symbol, i.e. men)
+
+
+## Mean&Standard Deviation Function
+```{r}
+mean(AGE[female == 1])
+```
+
+```{r}
+sd(AGE[female == 1])
+```
+```{r}
+mean(AGE[!female])
+```
+
+```{r}
+sd(AGE[!female])
+```
+## Educational Attainments in NYC
+ Q4. Tell me something else interesting, that you learned from the data, for example about educational attainments In different neighborhoods in the city. Are there surprises for you?
+ 
+ In New York city,the majority of people in NYC receive at least high school education among which people with regular high school diploma and Bachelor Degree holer rank the first top2 with 35689 and 30802 respectively.Only small portion quit school before primary education or even receive no education.
+
+
+```{r}
+summary(EDUCD)
+plot(EDUCD)
+
+summary(DEGFIELD)
+plot(DEGFIELD)
+```
+
+
+
+
+
+# Q4. Dice experiments 
+Before class, you should have done about 20 experiments where you roll the dice (or use the app) and record whether the result was a 6 or not. If you’ve got an app, then drawing integers from interval [1,6] is like fair dice; integers from [1,5] will be rather boring and never produce a 6; but integers from [1,8] or [1,10] will produce 6 but at a lower rate than fair dice.
+
+
+## Rolling the dice physically
+
+*[1] p(6)=0*
+
+
+## 1.Fair Dice
+```{r}
+roll_dice=function(n) sample(1:6,n,rep=T)
+roll_dice(20)
+mean(roll_dice(20))
+sd(roll_dice(20))
+```
+p(6)=0.3
+
+```{r}
+roll_dice(40)
+mean(roll_dice(40))
+sd(roll_dice(40))
+
+```
+```
+p(6)=0.225
+
+
+## fingdings:
+When I rolled dice physically, the probability of getting a "6" is much less than the expected probability each time rolling the dice 1/6. Judging from the previous streak, our intuition tend to believe I will continue to have a thin chance in the following roll to get more"6".
+
+```
+
+
+# Q5.	S&P500
+Differences in means can be complicated. Find the mean return on SP500 index (choose a time period). What is the mean return on days when the previous day’s return was positive? When the previous 2 days were positive? Negative? Now read about “hot hands fallacy” and tell if you think that helps investment strategy. (You might start with this tweet, and read the papers referenced.)
+
+
+## Data Source:Yahoo Finance
+
+
+```
+  
+**a chart named return.pgn attached**  just fail to insert
+
+```
+
+```
+##the mean return from Aug. 3nd to Aug.10th is 0.447% during which it has experienced a consecutive six day of positive return.
+
+##the previous two days when the return were positive from Aug.7th to Aug. 8th is 0.168%
+
+##the mean return of Aug. 13th to Aug.14 is -0.111%.
+
+##the mean return of the whole month(Aug.) is 0.32%.
+
+
+
+#advice from observing the historical streaks
+
+Historical prices of SP500 from Aug.03 to Sep.11 are selected to observe the return streaks of the market. From the beginning of August, the market enjoyed a consecutive 7 days’ rise in return which generated a mean return rate of 0.447%. When calculating the previous two days that the market started to generate positive return, the mean return rate is 0.57% much higher than that in a comparatively long rising period 0.447%. In this case, in my opinion, in a short period, when the market is in a thrive, investors may tend to have faith that the return rate will be more often to remain positive. Similarly, in the dice experiment, the first 20 times rolling dice physically, I got 0time of "6". I tended to think in the following rolls the chance is thin to get a 6--**Hot Hand Fallacy**. However, when the market has been increasing for a certain long period, to think marginally, our intuition may alert us that there might be a turnaround after a consecutive positive return from stock. In this situation, irrational investors may tend to go short and the negative inference becomes contagious to other investors. 
+So, my conclusion is that the streak of stock will lead us to hot hand fallacy or gambler fallacy. But when we go back to the simplest dice rolling game, we should also be aware the fact that the probability of getting any number from 1-6 is actually the same 1/6. So, same as the stock market. Since the daily return of the stock is an independent event, the probability of fall or rise is half and half. We should take other factors into consideration such as, government policy, performance of firms, other economic indexs ect.
+```{r}
+getwd()
+```
+
