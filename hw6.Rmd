@@ -1,0 +1,138 @@
+---
+title: "hw6"
+author: "Carol, JOYCE, Mei, Tami"
+date: "11/9/2020"
+output: html_document
+---
+```
+```
+##The oringinal codes from lab
+```{r}
+load("~/Desktop/.RData")
+attach(acs2017_ny)
+attach(dat_NYC)
+detach()
+
+```
+
+```{r}
+acs2017_ny$LABFORCE <- as.factor(acs2017_ny$LABFORCE)
+levels(acs2017_ny$LABFORCE) <- c("NA","Not in LF","in LF")
+
+acs2017_ny$MARST <- as.factor(acs2017_ny$MARST)
+levels(acs2017_ny$MARST) <- c("married spouse present","married spouse absent","separated","divorced","widowed","never married")
+```
+
+```{r}
+#cut age in different range
+acs2017_ny$age_bands <- cut(acs2017_ny$AGE,breaks=c(0,25,35,45,55,65,100))
+table(acs2017_ny$age_bands,acs2017_ny$LABFORCE)
+
+pick_use1 <- (acs2017_ny$AGE >25) & (acs2017_ny$AGE <= 55)
+dat_use1 <- subset(acs2017_ny, pick_use1)
+
+dat_use1$LABFORCE <- droplevels(dat_use1$LABFORCE) 
+```
+Q1: What is the difference between “NA” as label and Not in the Labor Force? Make sure you understand. (Hint, look at ages in each group).
+NA data are concentrated in age between 0~25, where children and student make up the most. A large proportion of people between 55~100 is out of laborforce, because that's the age of retirement. 
+
+
+In general it is a good idea to check summary stats before doing fancier models. What fraction of people, say, 55-65, are in the labor force? What about other age ranges? What would you guess are other important predictors? For example,
+```{r}
+model_logit1 <- glm(LABFORCE ~ AGE + I(AGE^2) + female + AfAm + Asian + race_oth + Hispanic 
+            + educ_hs + educ_somecoll + educ_college + educ_advdeg 
+            + MARST,
+            family = binomial, data = dat_use1)
+summary(model_logit1)
+```
+
+Except for age and MARSTwidowed, most of the variables are significant. 
+
+```{r}
+library(car)
+vif(model_logit1)
+```
+
+
+
+```{r}
+library(generalhoslem)
+logitgof(dat_use1$LABFORCE,fitted(model_logit1))
+
+or<-exp((summary(model_logit1))$coef[,'Estimate'])
+or
+```
+
+The HL test show the probability of people who are in the laborforce under each sector. Female, people who are in the marrige status of married spouse sbsent, widowed, never married are less likely to be participanted in the laborforce. 
+
+
+```{r}
+#Predict
+set.seed(11111)
+index<-sample(x=2,size=nrow(dat_use1),replace=TRUE,prob=c(0.7,0.3))
+train<-dat_use1[index==1,]
+test<-dat_use1[index==2,]
+dim(dat_use1)
+dim(train)
+dim(test)
+```
+
+```{r}
+trainmodel<-glm(LABFORCE ~AGE + I(AGE^2) +female + MORTGAGE+ AfAm + Asian + Hispanic 
+            + educ_hs + educ_somecoll + educ_college + educ_advdeg 
+            + MARST,
+            family = binomial, data = train)
+prob<-predict(object=trainmodel,newdata=test,type="response")# use the trainmodel to predict
+pred<-cbind(test,prob)
+pred<-transform(pred,predict=ifelse(prob<=0.5,0,1)) #Reclassify the predicted probability values
+ta<-table(pred$LABFORCE,pred$predict) #Compare the actual and predicted values of the model
+ta
+```
+So 319+18000 results are matched the prediction and 264+3809 results failed.
+
+```{r}
+sum_diag<-sum(diag(ta)) #the sum of the correct predict Numbers
+sum<-sum(ta) #the sum of predict Numbers
+sum_diag/sum #Prediction accuracy
+```
+```{r}
+library("pROC")
+
+```
+
+```{r}
+roc_curve<-roc(test$LABFORCE,prob)
+x<-1-roc_curve$specificities
+y<-roc_curve$sensitivities
+plot(x=x,y=y,xlim=c(0,1),ylim=c(0,1),xlab="1-specificity",
+ylab="sensitivity",main="ROC Curve",type="l",lwd=2)
+abline(a=0,b=1,col="grey")
+auc<-roc_curve$auc
+text(0.5,0.4,paste("AUC",round(auc,digits=2)),col="blue")
+```
+The acuracy of the model is 72%.
+
+
+```{r}
+## adding two more variables into model_logit1 :Citizen and FAMSIZE; also add interaction with female and MARST
+Model_2<- glm(LABFORCE ~ AGE + I(AGE^2) + female:MARST + AfAm + Asian + race_oth + Hispanic 
+            + educ_hs + educ_somecoll + educ_college + educ_advdeg 
+            + MARST+CITIZEN+FAMSIZE,
+            family = binomial, data = dat_use1)
+summary(Model_2)
+```
+## INTERPRETATION
+1.After adding the CITIZEN and FAMSIZE as well as the interation between female and MARST, the AIC decreases compared with the model_logit1.It give more credibility to the model. 
+
+2.Citizen and people form a family are more likely to be in the workforce. What this model surprises us is that female who are never married is 14.39% higher to be in the workforce than male. 
+
+```{r}
+model_probit1 <- glm(LABFORCE ~ AGE + I(AGE^2) + female + AfAm + Asian + race_oth + Hispanic 
+            + educ_hs + educ_somecoll + educ_college + educ_advdeg 
+            + MARST,
+            family = binomial(link = 'probit'), data = dat_use1)
+summary(model_probit1)
+```
+
+Compared to the model_logic1, the AIC slightly decreases.
+
