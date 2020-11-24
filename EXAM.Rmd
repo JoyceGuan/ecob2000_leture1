@@ -1,0 +1,153 @@
+---
+title: "exam2"
+author: "Meirou Guan"
+date: "11/23/2020"
+output: github_document
+---
+
+
+1.(15 points) Please answer the following; you might find it useful to make a sketch.
+
+  a.For a Normal Distribution that has mean 1 and standard deviation 6.5, what is the area to the left of 1.65?
+  anserer a:(0.53983)
+  
+  b. For a Normal Distribution that has mean 8 and standard deviation 2.7, what is the area in both tails farther from the mean than 13.67?
+   anserer b:  0.017864*2=0.035728
+   
+    c.For a Normal Distribution that has mean -11 and standard deviation 4, what is the area in both tails farther from the mean than -5.4?
+    anserer c:0.080757*2=0.161514
+    
+    d. For a Normal Distribution that has mean 14 and standard deviation 7.4 what two values leave probability 0.158 in both tails?
+
+    
+    e.A regression coefficient is estimated to be equal to 6.56 with standard error 4.1; there are 24 degrees of freedom. What is the p-value (from the t-statistic) against the null hypothesis of zero?
+    answere: T-statistic= 1.6    The p-value=0.122681  (alpha=0.05)
+   
+    f.A regression coefficient is estimated to be equal to -0.24 with standard error 0.4; there are 4 degrees of freedom. What is the p-value (from the t-statistic) against the null hypothesis of zero?
+    answer f: T-statistic= -0.6  The p-value=0.580841 (alpha=0.05)
+  
+
+2.(10 points) As we consider, “did everything change after March 2020?” look at crude oil prices. The average daily return of crude oil was 0.000145 with standard deviation of 0.0213 in 289 days before March 1. Average daily return after that date was -0.0210 with standard deviation of 0.271 in 174 days after. Is there a statistically significant difference in the mean? Calculate t-stat and p-value for the test against no difference in daily returns.
+
+Answer: 
+```{r}
+0.000145/0.0213
+```
+
+Before March 1: T-statistic= 0.006807512  
+
+
+3.(10 points) In good news, there was information about vaccine trials. Consider (these are not quite the actual data but a simplified version) looking at 2 groups, each with 10,000 people. In the control group who did not get the vaccine there were 90 infections. In the test group that did get the vaccine there were 15 infections. Calculate the t-stat and p-value for the test against no difference in infection rates between groups.
+
+
+The next questions will use the PUMS ACS 2017 NY data that we’ve been using so often in class. We’ll consider people’s decisions about usual hours worked, given by the variable UHRSWORK. There are 3 broad categories: people who are not in the labor force, those working part time (UHRSWORK > 0 and < 35) and those working full time ( >= 35).
+
+4.(10 points) Create a subgroup of the sample, that makes sense as we focus on the decision of whether to work full time or part time. Explain your rationale
+
+```{r}
+load("~/Desktop/.RData")
+attach(dat_NYC)
+```
+
+```{r}
+use_varb <- (AGE >= 25) & (AGE <= 55) & (FAMSIZE >=5) & (Asian==1) & (educ_college==1)
+dat_use <- subset(acs2017_ny,use_varb)
+```
+  In this subset, we want to analyze whether an Asian person between 25 to 55 who has at least 4 family members, who has a college education level would like to work as full time or part-time.
+  Intuitively, a male has more family members tend to be more likely to work as a full-time; however, female on the opposite. People who has higer education level also tend to work longer hours.
+  
+
+5.(10 points) Within this subgroup, test if there is a difference between men and women. Calculate a t-stat and p-value for the test of no difference between the groups. Provide simple statistics for a few other relevanant categories.
+
+```{r}
+model_sex <- glm(UHRSWORK ~  SEX,data=dat_use )
+summary(model_sex)
+```
+```{r}
+anova(model_sex)
+```
+
+
+
+
+6.(20 points) Estimate a simple OLS model for hours worked, within your subsample.
+```{r}
+model2_UHRSWORK <- lm (UHRSWORK ~ AGE+I(AGE^2) +female  + OWNCOST+ RENT+MORTGAGE+FOODSTMP+ROOMS,data = dat_use)
+summary(model2_UHRSWORK )
+```
+a.Explain what variables you choose to use as predictors. Do they seem exogenous? Consider whether polynomials in Age are important or interactions with dummy variables.
+  
+  Here, variables AGE, SEX, OWNCOST, RENT, FOODSTAMP and ROOM are considered. Working hours varies from different age range so it is an important factor that affects working hours. We  think working hours is closely related with owner cost such as whether a person rent a house or whether he has a mortgage. Social benefit like foodstamp also affects working hours. 
+  In the table above, the term AGE^2 is significant. It helps the model to predict in which age range people work the most. 
+  
+b.Do your estimates seem plausible? Are the estimates each statistically significant?
+   
+   At the significant level of 0.05, most of the variables selected are significant, except for OWNCOST. Here, we think owncost is extensivly related to many other factors which makes it indirect to explain working hours.
+   
+c.Construct a joint test of whether a reasonable set of coefficients (such as age polynomials, or education dummies) are all zero.
+```{r}
+coef(model2_UHRSWORK)
+```
+
+```
+
+
+```
+d.What are the predicted probabilities for a few particular groups?
+
+
+e.How many Type I and Type II errors are made by the model?
+
+
+
+7.(20 points) Estimate a simple logit model, for the outcome variable Work_Fulltime <- (UHRSWORK >= 35), within your subsample.
+
+    a.Explain what variables you choose to use as predictors. Do they seem exogenous? Consider whether polynomials in Age are important or interactions with dummy variables.
+```
+```
+```{r}
+```{r}
+model4_WF <- glm ( UHRSWORK >= 35 ~ AGE+I(AGE^2) +female  + OWNCOST+ RENT+MORTGAGE+FOODSTMP+ROOMS,data = dat_use)
+summary(model4_WF)
+
+```
+ b.Do your estimates seem plausible? Are the estimates each statistically significant?
+  In the logit model, the OWNCOST and ROOMS are insignificant. All ohters factors show a credible relation with Working as full-time.
+    
+    c.Construct a joint test of whether a reasonable set of coefficients (such as age polynomials, or education dummies) are all zero.
+```{r}
+coef(model4_WF)
+```
+    
+d.What are the predicted probabilities for a few particular groups?
+Estimating the probability a 35year-old male person who has foodstamp
+f(female=0,age=35, foodstamp=1)=-2.636e-01+ 4.125e-02*(35)-4.476e-04(35^2) -1.080e-01 
+
+use 1/1+e^(f(x))=
+
+
+e.How many Type I and Type II errors are made by the model?
+```{r}
+ model4_WF<- glm( UHRSWORK >= 35 ~ AGE+I(AGE^2) +female  + OWNCOST+ RENT+MORTGAGE+FOODSTMP+ROOMS,data = dat_use)
+suppressWarnings(pred_vals_lpm <- predict(model4_WF, dat_use))
+pred_model_lpm1 <- (pred_vals_lpm > 0.5)
+table1 <- table(pred = pred_model_lpm1,true = dat_use$UHRSWORK)
+summary(table1)
+```
+
+```{r}
+print(table1)
+```
+
+8.(25 points) Estimate one or more additional models with other methods (not OLS or logit) to predict hours or if a person works full time. Explain as in previous. Compare the different models and make judgements about strengths and weaknesses of each.
+ 
+``>set.seed(54321)
+ model1_spikeslab <- spikeslab UHRSWORK >= 35 ~ AGE+I(AGE^2) +female  + OWNCOST+ RENT+MORTGAGE+FOODSTMP+ROOMS,data = dat_use()
+>summary(model1_spikeslab)
+>print(model1_spikeslab)
+>plot(model1_spikeslab)`{r}
+
+```
+
+```
+
